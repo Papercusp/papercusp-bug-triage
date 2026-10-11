@@ -1,0 +1,79 @@
+{
+  "$schema": "https://papercuspai.com/schema/papercusp-plugin.schema.json",
+  "kind": "plugin",
+  "name": "@papercupai/bug-triage",
+  "version": "0.1.0",
+  "papercusp": "^0.1.0",
+  "distribution": "cupboard",
+  "description": "Trigger pack: reads messages in the chat channels you pick, decides which ones report a bug, and files each bug as a ticket in the project you pick. Works with any installed chat provider and any installed ticket provider.",
+  "author": "Papercusp",
+  "publisher": "@papercupai",
+  "license": "MIT",
+  "versionPin": { "mode": "exact" },
+  "capabilities": [],
+  "triggerPack": {
+    "inputs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["channels", "destination"],
+      "properties": {
+        "channels": {
+          "type": "array",
+          "title": "Channels to watch",
+          "description": "Only messages posted in these channels are triaged.",
+          "minItems": 1,
+          "items": { "type": "string", "minLength": 1 },
+          "x-options": { "capability": "chat.channels" }
+        },
+        "destination": {
+          "type": "string",
+          "title": "File bugs in",
+          "description": "Every bug is filed here. The workflow cannot choose another destination.",
+          "minLength": 1,
+          "x-options": { "capability": "ticket.containers", "args": { "purpose": "create" } }
+        }
+      }
+    },
+    "defaultStormPolicy": { "maxRuns": 20, "windowSeconds": 300 },
+    "targets": [
+      {
+        "id": "triage-message",
+        "kind": "plan",
+        "path": "plan.md",
+        "inputSchema": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["trigger"],
+          "properties": {
+            "trigger": {
+              "type": "object",
+              "additionalProperties": true,
+              "required": ["key", "source", "event", "sourceId", "externalId", "dedupeKey"],
+              "properties": {
+                "key": { "type": "string", "pattern": "^ext:[a-z0-9][a-z0-9-]*:message$" },
+                "source": { "type": "string", "minLength": 1 },
+                "event": { "const": "message" },
+                "sourceId": { "type": "string", "minLength": 1 },
+                "externalId": { "type": "string", "minLength": 1 },
+                "dedupeKey": { "type": "string", "minLength": 1 }
+              }
+            },
+            "channels": { "type": "array", "items": { "type": "string" } },
+            "destination": { "type": "string" }
+          }
+        }
+      }
+    ],
+    "bindings": [
+      {
+        "id": "message-to-triage",
+        "source": { "kind": "external", "datatype": "chat-message" },
+        "target": "triage-message",
+        "eventPattern": "ext:*:message",
+        "filter": { "all": [{ "text": { "exists": true } }] },
+        "mapping": { "mode": "payload-context" }
+      }
+    ],
+    "edges": []
+  }
+}
