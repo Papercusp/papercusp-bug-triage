@@ -2,10 +2,10 @@
   "$schema": "https://papercuspai.com/schema/papercusp-plugin.schema.json",
   "kind": "plugin",
   "name": "@papercupai/bug-triage",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "papercusp": "^0.1.0",
   "distribution": "cupboard",
-  "description": "Trigger pack: reads messages in the chat channels you pick, decides which ones report a bug, and files each bug as a ticket in the project you pick. Works with any installed chat provider and any installed ticket provider.",
+  "description": "Trigger pack: reads messages in the chat channels you pick, decides which ones report a bug, and files each bug as a ticket in the project you pick. People can also report a message directly: react with :bug:, use the chat app's \"Report a bug\" shortcut, or mention the app with \"bug\"; those are filed without classification. Works with any installed chat provider and any installed ticket provider.",
   "author": "Papercusp",
   "publisher": "@papercupai",
   "license": "MIT",
@@ -62,6 +62,33 @@
             "destination": { "type": "string" }
           }
         }
+      },
+      {
+        "id": "file-report",
+        "kind": "plan",
+        "path": "report.md",
+        "inputSchema": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["trigger"],
+          "properties": {
+            "trigger": {
+              "type": "object",
+              "additionalProperties": true,
+              "required": ["key", "source", "event", "sourceId", "externalId", "dedupeKey"],
+              "properties": {
+                "key": { "type": "string", "pattern": "^ext:[a-z0-9][a-z0-9-]*:(reaction|report|mention)$" },
+                "source": { "type": "string", "minLength": 1 },
+                "event": { "enum": ["reaction", "report", "mention"] },
+                "sourceId": { "type": "string", "minLength": 1 },
+                "externalId": { "type": "string", "minLength": 1 },
+                "dedupeKey": { "type": "string", "minLength": 1 }
+              }
+            },
+            "channels": { "type": "array", "items": { "type": "string" } },
+            "destination": { "type": "string" }
+          }
+        }
       }
     ],
     "bindings": [
@@ -70,7 +97,56 @@
         "source": { "kind": "external", "datatype": "chat-message" },
         "target": "triage-message",
         "eventPattern": "ext:*:message",
+        "filter": {
+          "all": [
+            { "text": { "exists": true } },
+            {
+              "not": {
+                "text": {
+                  "matches": {
+                    "source": "^(?:\\s*<@[A-Z0-9]+(?:\\|[^>]*)?>)+\\s*(?::bug:|🐛|bugs?\\b|report-bug\\b|report\\s+(?:a\\s+|this\\s+)?bug\\b)",
+                    "flags": "iu"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        "mapping": { "mode": "payload-context" }
+      },
+      {
+        "id": "bug-reaction-to-report",
+        "source": { "kind": "external", "datatype": "chat-message" },
+        "target": "file-report",
+        "eventPattern": "ext:*:reaction",
+        "filter": { "all": [{ "gesture.reaction": { "equals": "bug" } }, { "text": { "exists": true } }] },
+        "mapping": { "mode": "payload-context" }
+      },
+      {
+        "id": "report-to-file",
+        "source": { "kind": "external", "datatype": "chat-message" },
+        "target": "file-report",
+        "eventPattern": "ext:*:report",
         "filter": { "all": [{ "text": { "exists": true } }] },
+        "mapping": { "mode": "payload-context" }
+      },
+      {
+        "id": "bug-mention-to-report",
+        "source": { "kind": "external", "datatype": "chat-message" },
+        "target": "file-report",
+        "eventPattern": "ext:*:mention",
+        "filter": {
+          "all": [
+            {
+              "text": {
+                "matches": {
+                  "source": "^(?:\\s*<@[A-Z0-9]+(?:\\|[^>]*)?>)+\\s*(?::bug:|🐛|bugs?\\b|report-bug\\b|report\\s+(?:a\\s+|this\\s+)?bug\\b)",
+                  "flags": "iu"
+                }
+              }
+            }
+          ]
+        },
         "mapping": { "mode": "payload-context" }
       }
     ],
