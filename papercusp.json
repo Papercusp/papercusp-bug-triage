@@ -2,7 +2,7 @@
   "$schema": "https://papercuspai.com/schema/papercusp-plugin.schema.json",
   "kind": "plugin",
   "name": "@papercupai/bug-triage",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "papercusp": "^0.1.0",
   "distribution": "cupboard",
   "description": "Trigger pack: reads messages in the chat channels you pick, decides which ones report a bug, and files each bug as a ticket in the project you pick. People can also report a message directly: react with :bug:, use the chat app's \"Report a bug\" shortcut, or mention the app with \"bug\"; those are filed without classification. Works with any installed chat provider and any installed ticket provider.",

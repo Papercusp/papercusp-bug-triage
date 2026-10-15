@@ -23,7 +23,7 @@ redirect a ticket. A message from a channel the installation does not watch cann
 
 ## Phase 1 — Triage
 
-- **P-001** `todo` Read the event `payload` returned by `triggers:read-payload { planRunId: payload.plan_run.runId }`. Decide whether the message reports a defect in software (something broken, crashing, wrong or missing compared with what the reporter expected). Questions, feature requests, praise and chatter are not bugs: complete without filing. For a bug, call `ticket:file` with `planRunId=payload.plan_run.runId`, a short `title` (at most 200 characters), `observed` (what the reporter says happened) and `expected` (what should have happened, or "not stated"). Complete only after it reports `created:true` or `alreadyCreated:true`; on `pendingReconciliation:true` call it again with the same run id.
+- **P-001** `todo` Read the event `payload` returned by `triggers:read-payload { planRunId: payload.plan_run.runId }`. Decide whether the message reports a software defect, is clearly not a bug (questions, feature requests, praise or chatter), or lacks enough information to decide. Call `ticket:file` with `planRunId=payload.plan_run.runId`, `classification` (`bug`, `non-bug` or `needs-information`) and a brief `reason`. For `bug`, also supply a short `title` (at most 200 characters), `observed` and `expected`, then complete only after `created:true` or `alreadyCreated:true`; for the other verdicts complete after the durable classification response. On `pendingReconciliation:true`, call it again with the same run id and verdict. A conflicting verdict is refused; never change a recorded verdict on replay.
 
 ## Decisions
 
