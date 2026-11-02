@@ -16,12 +16,18 @@ receive the tickets.
    - **Channels to watch**: filled from the chat provider's `chat.channels`.
    - **File bugs in**: filled from the ticket provider's `ticket.containers { purpose: 'create' }`,
      which lists only the projects a ticket can actually be filed in.
+   - **Assign filed bugs to** (optional): `self` assigns every filed bug to the connected ticket
+     account, which hands it to Papercusp (the ticket syncs back with `selfRoles: ['assignee']`).
+     Leave it unset to file bugs unassigned. To route some channels to Papercusp and not others,
+     install the pack twice with different channels.
 3. Review the disarmed binding and arm it.
 
 ## Guarantees
 
 - The worker supplies only a title and the observed/expected text. The server takes the
-  destination from the installation, so the message cannot redirect a ticket.
+  destination and the assignee from the installation, so the message cannot redirect a ticket.
+- An assignment is recorded as confirmed only when the ticket provider reports it; otherwise the
+  filing records `assigned: false`.
 - A message from a channel the installation does not watch cannot file.
 - The ticket body quotes the message as untrusted evidence.
 - Each trigger run files at most once: the attempt is recorded before any provider call, and a

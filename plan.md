@@ -54,13 +54,15 @@ again.
     "requiredScope": [
       "plan-run"
     ],
-    "evidencePlane": "tree"
+    "evidencePlane": "tree",
+    "requiredTestLayers": ["integration"]
   },
   "verification": {
     "method": "Read the installed plan template and trace one representative bug report and one non-bug trigger run against their recorded ticketFiling outcome.",
     "check": {
       "kind": "instrument",
-      "instrumentKey": "none"
+      "instrumentKey": "ticket:filing-integration",
+      "expect": { "op": "eq", "value": 1 }
     },
     "replication": "Repeat the review for a replayed run and for a message from an unwatched channel."
   }

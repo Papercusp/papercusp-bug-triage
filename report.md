@@ -62,13 +62,15 @@ installation, and replays recover the recorded ticket instead of filing again.
     "requiredScope": [
       "plan-run"
     ],
-    "evidencePlane": "tree"
+    "evidencePlane": "tree",
+    "requiredTestLayers": ["integration"]
   },
   "verification": {
     "method": "Trace one reaction, one form report and one thread mention through their trigger runs to the recorded ticketFiling outcome.",
     "check": {
       "kind": "instrument",
-      "instrumentKey": "none"
+      "instrumentKey": "ticket:filing-integration",
+      "expect": { "op": "eq", "value": 1 }
     },
     "replication": "Repeat for a replayed run and for a report from an unwatched channel."
   }
